@@ -20,11 +20,11 @@
 %%%-------------------------------------------------------------------
 
 
-start_link() -> 
-    start_link(['127.0.0.1', 9092]). 
- 
+start_link() ->
+    start_link(['127.0.0.1', 9092]).
 
-start_link([Host, Port]) -> 
+
+start_link([Host, Port]) ->
    gen_server:start_link( ?MODULE, [Host, Port], []).
 
 
@@ -33,13 +33,13 @@ start_link([Host, Port]) ->
 %%%                         GEN_SERVER CB FUNCTIONS
 %%%-------------------------------------------------------------------
 
-init([Host, Port]) -> 
+init([Host, Port]) ->
     {ok, Socket} = gen_tcp:connect(Host, Port,
                                    [binary, {active, false}, {packet, raw}]),
    {ok, #state{socket=Socket}, 0}.
 
 
-handle_call({request_with_response, Req}, _From, State) -> 
+handle_call({request_with_response, Req}, _From, State) ->
 
   ok = gen_tcp:send(State#state.socket, Req),
 
@@ -56,7 +56,7 @@ handle_call({request_with_response, Req}, _From, State) ->
             {reply, {error, B}, State}
     end;
 
-handle_call({request_with_response_offset, Req}, _From, State) -> 
+handle_call({request_with_response_offset, Req}, _From, State) ->
 
   ok = gen_tcp:send(State#state.socket, Req),
 
@@ -75,22 +75,22 @@ handle_call({request_with_response_offset, Req}, _From, State) ->
 
 
 
-handle_call({request, Req}, _From, State) -> 
+handle_call({request, Req}, _From, State) ->
 
   ok = gen_tcp:send(State#state.socket, Req),
   {reply, ok, State}.
 
 
 
-handle_cast(stop_link, State) -> 
+handle_cast(stop_link, State) ->
   {stop, normal, State}.
 
-handle_info(_, State) -> 
+handle_info(_, State) ->
   {noreply, State}.
 
-terminate(_Reason, _State) -> 
+terminate(_Reason, _State) ->
     ok.
 
-code_change(_OldVsn, State, _Extra) -> 
+code_change(_OldVsn, State, _Extra) ->
    {ok, State}.
 

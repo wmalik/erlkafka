@@ -15,21 +15,21 @@ start_link(_Params) ->
     supervisor:start_link({local, ?MODULE},
 			  ?MODULE, []).
 
-init([]) -> 
+init([]) ->
    RestartStrategy = {one_for_one, 0, 1},
    Children = [
                {
-	        kafka_server_sup, 
+	        kafka_server_sup,
 	        {kafka_server_sup, start_link,[]},
-	        permanent, 
+	        permanent,
 	        infinity,
 	        supervisor,
 		[kafka_server_sup]
 	       },
                {
-	        kafka_stream_consumer_sup, 
+	        kafka_stream_consumer_sup,
 	        {kafka_stream_consumer_sup, start_link,[]},
-	        permanent, 
+	        permanent,
 	        infinity,
 	        supervisor,
 		[kafka_stream_consumer_sup]

@@ -20,37 +20,37 @@
 %%%                         API FUNCTIONS
 %%%-------------------------------------------------------------------
 
-produce(Broker, Topic, Partition, Messages) -> 
+produce(Broker, Topic, Partition, Messages) ->
    Req = kafka_protocol:produce_request (Topic, Partition, Messages),
    call({Broker, request, Req}).  % a produce in Kafka 0.7 has no response
-     
-multi_produce(Broker, TopicPartitionMessages) -> 
+
+multi_produce(Broker, TopicPartitionMessages) ->
    Req = kafka_protocol:multi_produce_request(TopicPartitionMessages),
    call({Broker, request, Req}). % a produce in Kafka 0.7 has no response
 
-fetch (Broker, Topic, Partition, Offset) -> 
+fetch (Broker, Topic, Partition, Offset) ->
    Req = kafka_protocol:fetch_request(Topic, Offset, Partition, ?MAX_MSG_SIZE),
    call({Broker, request_with_response, Req}).
 
-multi_fetch(Broker, TopicPartitionOffsets) -> 
-   Req = kafka_protocol:multi_fetch_request (TopicPartitionOffsets), 
+multi_fetch(Broker, TopicPartitionOffsets) ->
+   Req = kafka_protocol:multi_fetch_request (TopicPartitionOffsets),
    call({Broker, request_with_response, Req}).
 
 offset(Broker, Topic, Partition, Time, MaxNumberOfOffsets) ->
-   Req = kafka_protocol:offset_request(Topic, Partition, Time, MaxNumberOfOffsets), 
+   Req = kafka_protocol:offset_request(Topic, Partition, Time, MaxNumberOfOffsets),
    call({Broker, request_with_response_offset, Req}).
 
 get_list_of_brokers() ->
-   
+
    kafka_protocol:get_list_of_brokers(
-	application:get_env(erlkafka_app, enable_autodiscovery),   
+	application:get_env(erlkafka_app, enable_autodiscovery),
 	application:get_env(erlkafka_app, kafka_brokers),
 	application:get_env(erlkafka_app, kafka_prefix)
    ).
 
-get_list_of_broker_partitions(Topic) -> 
+get_list_of_broker_partitions(Topic) ->
    kafka_protocol:get_list_of_broker_partitions(
-	application:get_env(erlkafka_app, enable_autodiscovery),   
+	application:get_env(erlkafka_app, enable_autodiscovery),
 	application:get_env(erlkafka_app, kafka_brokers),
 	application:get_env(erlkafka_app, kafka_prefix),
 	Topic
@@ -61,37 +61,37 @@ get_list_of_broker_partitions(Topic) ->
 %%%-------------------------------------------------------------------
 
 
-call({Broker, request, Req}) -> 
-   case kafka_server_sup:get_random_broker_instance_from_pool(Broker) of 
-       {error, _} -> 
+call({Broker, request, Req}) ->
+   case kafka_server_sup:get_random_broker_instance_from_pool(Broker) of
+       {error, _} ->
            {error, unable_to_get_broker_instance_from_pool};
 
-        {BrokerInstancePid, _BrokerInstanceId} -> 
+        {BrokerInstancePid, _BrokerInstanceId} ->
               gen_server:call(BrokerInstancePid, {request, Req})
    end;
 
 
-call({Broker, request_with_response_offset, Req}) -> 
-   case kafka_server_sup:get_random_broker_instance_from_pool(Broker) of 
-       {error, _} -> 
+call({Broker, request_with_response_offset, Req}) ->
+   case kafka_server_sup:get_random_broker_instance_from_pool(Broker) of
+       {error, _} ->
            {error, unable_to_get_broker_instance_from_pool};
 
-        {BrokerInstancePid,_BrokerInstanceId}  -> 
+        {BrokerInstancePid,_BrokerInstanceId}  ->
               gen_server:call(BrokerInstancePid, {request_with_response_offset, Req})
    end;
 
-call({Broker, request_with_response, Req}) -> 
-   case kafka_server_sup:get_random_broker_instance_from_pool(Broker) of 
-       {error, _} -> 
+call({Broker, request_with_response, Req}) ->
+   case kafka_server_sup:get_random_broker_instance_from_pool(Broker) of
+       {error, _} ->
            {error, unable_to_get_broker_instance_from_pool};
 
-        {BrokerInstancePid,_BrokerInstanceId}  -> 
+        {BrokerInstancePid,_BrokerInstanceId}  ->
               gen_server:call(BrokerInstancePid, {request_with_response, Req})
    end.
 
 
 
-       
+
 
 %%%-------------------------------------------------------------------
 %%%                         TEST FUNCTIONS
@@ -103,25 +103,25 @@ get_list_of_brokers_test()->
     get_list_of_brokers().
 
 
-produce_test() -> 
+produce_test() ->
     BrokerId = 0,
     Topic = <<"test">>,
     Partition = 0,
     Messages = [<<"hi">>, <<"there">>],
-    produce(BrokerId, Topic, Partition, Messages).    
+    produce(BrokerId, Topic, Partition, Messages).
 
-multi_produce_test() -> 
+multi_produce_test() ->
      BrokerId = 0,
-     TopicPartitionMessages = [ 
+     TopicPartitionMessages = [
      			        {
 				 <<"test1">>,         %Topic
-				 0,                   % partition 
+				 0,                   % partition
 				 [{1,0, <<"hi">> },   % {Magic, Compression, Msg}
                                   {1,0, <<"there">>}]
-                                }, 
+                                },
      			        {
 				 <<"test2">>,         %Topic
-				 0,                   % partition 
+				 0,                   % partition
 				 [{1,0, <<"hello">> },   % {Magic, Compression, Msg}
                                   {1,0, <<"world">>}]
                                 }
@@ -130,7 +130,7 @@ multi_produce_test() ->
 
 
 
-fetch_test () -> 
+fetch_test () ->
     BrokerId = 0,
     Topic = <<"test">>,
     Partition = 0,
@@ -140,10 +140,10 @@ fetch_test () ->
 multi_fetch_test() ->
     BrokerId = 0,
     TopicPartitionOffsets = [{<<"test">>, 0, 0, ?MAX_MSG_SIZE}, {<<"test2">>, 0,0, ?MAX_MSG_SIZE}],
-    multi_fetch(BrokerId,TopicPartitionOffsets). 
+    multi_fetch(BrokerId,TopicPartitionOffsets).
 
 
-offset_test() -> 
+offset_test() ->
     BrokerId = 0,
     Topic = <<"test">>,
     Partition = 0,

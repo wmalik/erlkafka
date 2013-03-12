@@ -23,12 +23,12 @@
 %%%-------------------------------------------------------------------
 
 
-start_link() -> 
+start_link() ->
 
-        supervisor:start_link({local, ?MODULE}, 
+        supervisor:start_link({local, ?MODULE},
 			      ?MODULE, []).
 
-	 
+
 
 
 %%%-------------------------------------------------------------------
@@ -38,7 +38,7 @@ start_link() ->
 
 
 
-init([]) -> 
+init([]) ->
 
   RestartStrategy = {one_for_one, 0, 1},
   Children = [],

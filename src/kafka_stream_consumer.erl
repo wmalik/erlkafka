@@ -20,13 +20,13 @@
 %%%                         API FUNCTIONS
 %%%-------------------------------------------------------------------
 
-start_link(KsrPid) -> 
+start_link(KsrPid) ->
    start_link(KsrPid, 5, 5000).
 
-get_stream_function() -> 
+get_stream_function() ->
    fun stream_messages/1.
 
-get_terminate_function() -> 
+get_terminate_function() ->
    fun stop_link/1.
 
 
@@ -35,11 +35,11 @@ get_terminate_function() ->
 %%%-------------------------------------------------------------------
 
 
-stream_messages(ConnPid) -> 
+stream_messages(ConnPid) ->
   gen_server:call(ConnPid, stream_messages).
 
 
-stop_link(ConnPid) -> 
+stop_link(ConnPid) ->
 
    gen_server:cast(ConnPid, stop_link).
 
@@ -49,67 +49,67 @@ stop_link(ConnPid) ->
 %%%-------------------------------------------------------------------
 
 
-init([ KsrPid, Count, Time]) -> 
+init([ KsrPid, Count, Time]) ->
    {ok, #state{ksr_pid=KsrPid, count=Count, time=Time}, 0}.
 
-handle_call(get_state, _From, State) -> 
+handle_call(get_state, _From, State) ->
    {reply, {ok, State}, State};
 
-handle_call(stream_messages, _From, #state{ksr_pid=KsrPid, count=Count, time=Time} = State) -> 
+handle_call(stream_messages, _From, #state{ksr_pid=KsrPid, count=Count, time=Time} = State) ->
 
 
- try 
-    lists:foreach(fun(_X) -> 
-    			  
+ try
+    lists:foreach(fun(_X) ->
+
         		  Resp = kafka_sequential_reader:next_messages(KsrPid),
-        		  case Resp of 
+        		  case Resp of
 			  	     {ok, []} ->
 				          throw(no_data);
-                                     {ok, {[], _ }} ->
+                     {ok, {[], _ }} ->
 	     	  		     	  ok;
 				     {ok, {Messages, Size}} ->
  			     	          throw({Messages, Size})
          		   end,
-         		   receive 
-			   after Time -> 
+         		   receive
+			   after Time ->
               		   	 ok       % wait for Time seconds in a loop
 		           end
                     end,
                   lists:seq(1,Count)),     % loop through Count times
 
         {reply, {ok, no_data}, State}
-   
+
   catch
      throw:{Messages, Size} -> {reply, {ok, {Messages, Size}}, State};
      throw:no_data ->         {reply, {ok, no_data}, State}
   end.
-  
 
 
-handle_cast(stop_link, State) -> 
+
+handle_cast(stop_link, State) ->
   {stop, normal, State}.
 
 
 
-handle_info(timeout, #state{conn_pid=undefined, ksr_pid=KsrPid} = State) -> 
+handle_info(timeout, #state{conn_pid=undefined, ksr_pid=KsrPid} = State) ->
   NewState = State#state{conn_pid=self()},
   link(KsrPid),
   {noreply, NewState};
 
-handle_info(_, State) -> 
+handle_info(_, State) ->
   {noreply, State}.
 
-terminate(_Reason, _State) -> 
+terminate(_Reason, _State) ->
     ok.
 
-code_change(_OldVsn, State, _Extra) -> 
+code_change(_OldVsn, State, _Extra) ->
    {ok, State}.
- 
+
 
 
 %%%-------------------------------------------------------------------
 %%%                       INTERNAL  FUNCTIONS
 %%%-------------------------------------------------------------------
 
-start_link(KsrPid, Count, Time) -> 
-   gen_server:start_link( ?MODULE, [ KsrPid, Count, Time], []).    
+start_link(KsrPid, Count, Time) ->
+   gen_server:start_link( ?MODULE, [ KsrPid, Count, Time], []).
